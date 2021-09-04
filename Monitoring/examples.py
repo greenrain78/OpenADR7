@@ -2,11 +2,11 @@
 
 from __future__ import division
 
-from domonit.containers import Containers
-from domonit.ids import Ids
-from domonit.inspect import Inspect
-from domonit.process import Process
-from domonit.stats import Stats
+from DoMonit.domonit.containers import Containers
+from DoMonit.domonit.ids import Ids
+from DoMonit.domonit.inspect import Inspect
+from DoMonit.domonit.process import Process
+from DoMonit.domonit.stats import Stats
 
 c = Containers()
 i = Ids()
