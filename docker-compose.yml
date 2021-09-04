@@ -1,80 +1,14 @@
 version: "3.9"
 
 services:
-  db:
-    container_name: adr_db
-    image: postgres
-    volumes:
-      - ./data:/var/lib/postgresql/data
-    environment:
-      - LC_ALL=C.UTF-8
-      - TZ=Asia/Seoul
-      - POSTGRES_DB=openadr
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=1234
-    ports:
-      - "10100:5432"
-    restart: always
 
-  db_test:
-    container_name: adr_db_test
-    image: postgres
-    volumes:
-      - ./data_test:/var/lib/postgresql/data
-    environment:
-      - LC_ALL=C.UTF-8
-      - TZ=Asia/Seoul
-      - POSTGRES_DB=openadr
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=1234
-    ports:
-      - "10110:5432"
-    restart: always
-
-  backend:
-    container_name: adr_back
+  monitoring:
+    container_name: adr_monitoring
     build:
-      context: Backend
-      dockerfile: Dockerfile
-    ports:
-      - "10200:8000"
-    volumes:
-      - ./Backend:/project
-    environment:
-      TZ: Asia/Seoul
-      ADR_DB: openadr
-      ADR_USER: user
-      ADR_PASSWORD: 1234
-      ADR_HOST: db
-      ADR_PORT: 5432 # 외부 노출 포트 말고 내부 포트를 기입
-      TEST_HOST: db_test
-      TEST_PORT: 5432
-    depends_on:
-      - db
-      - db_test
-
-  frontend:
-    container_name: adr_front
-    build:
-      context: Frontend
+      context: Monitoring
       dockerfile: Dockerfile
     volumes:
-      - ./Frontend:/app
-      - /app/node_modules # 도커 컨테이너에서만 존재?
-    ports:
-      - "10300:3000"
-    environment:
-      - NODE_ENV=development
-    stdin_open: true
-    tty: true
-
-  model:
-    container_name: adr_model
-    build:
-      context: Model
-      dockerfile: Dockerfile
-    volumes:
-      - ./Model:/project
+      - ./Monitoring:/project
 #    tty : true
     environment:
       TZ: Asia/Seoul
@@ -88,46 +22,3 @@ services:
     # 환경변수 설정 파일
     env_file:
       - Model/model-variables.env
-    depends_on:
-      - backend
-      - db
-      - db_test
-
-  grafana:
-    image: grafana/grafana:4.4.3
-    container_name: grafana
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=1234
-    ports:
-      - "10400:3000"
-    links:
-      - prometheus
-
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    ports:
-      - 9090:9090
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    depends_on:
-      - cadvisor
-
-  cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
-    container_name: cadvisor
-    ports:
-      - 8080:8080
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-    depends_on:
-      - db
-      - db_test
-      - backend
-      - frontend
-      - model
