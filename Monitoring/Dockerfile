@@ -14,6 +14,7 @@ WORKDIR /project
 
 # 파이썬 라이브러리 설치
 COPY requirements.txt /project
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # -u 옵션으로 버퍼없이 즉시 출력
